@@ -7,16 +7,19 @@ For more information on `huggingface_hub` Inference API support, please check th
 client = InferenceClient("HuggingFaceH4/zephyr-7b-beta")
 
 
+
 def respond(
     message,
     history: list[tuple[str, str]],
-    system_message,
-    max_tokens,
     temperature,
     top_p,
 ):
-    system_message = "You are a good listener. You advise relaxation exercises, suggest avoiding negative thoughts, and guide through steps to manage stress. Discuss what's on your mind, or ask me for a quick relaxation exercise."
+    system_message = "🌍 Welcome to the Language Learning Buddy! 🌍\n\nI'm here to assist you in learning languages. Whether you want to practice vocabulary, improve pronunciation, or learn about cultural nuances, I'm your guide. Feel free to ask me questions or start a language lesson!"
+
+
+
     messages = [{"role": "system", "content": system_message}]
+
 
     for val in history:
         if val[0]:
@@ -24,46 +27,49 @@ def respond(
         if val[1]:
             messages.append({"role": "assistant", "content": val[1]})
 
+
     messages.append({"role": "user", "content": message})
 
     response = ""
 
+
     for message in client.chat_completion(
         messages,
         max_tokens=max_tokens,
-        stream=True,
-        temperature=temperature,
-        top_p=top_p,
-    ):
-        token = message.choices[0].delta.content
-
         response += token
         yield response
 
 """
 For information on how to customize the ChatInterface, peruse the gradio docs: https://www.gradio.app/docs/chatinterface
 """
+
 demo = gr.ChatInterface(
     respond,
     additional_inputs=[
-        gr.Textbox(value = "You are a good listener. You advise relaxation exercises, suggest avoiding negative thoughts, and guide through steps to manage stress. Discuss what's on your mind, or ask me for a quick relaxation exercise.", label="System message"),
-        gr.Slider(minimum=1, maximum=2048, value=512, step=1, label="Max new tokens"),
+        gr.Textbox(value="🌍 Welcome to the Language Learning Buddy! 🌍\n\nI'm here to assist you in learning languages. Whether you want to practice vocabulary, improve pronunciation, or learn about cultural nuances, I'm your guide. Feel free to ask me questions or start a language lesson!", label="System Message", lines=4),
+        gr.Slider(minimum=1, maximum=2048, value=512, step=1, label="Maximum Tokens"),
         gr.Slider(minimum=0.1, maximum=4.0, value=0.7, step=0.1, label="Temperature"),
         gr.Slider(
-            minimum=0.1,
-            maximum=1.0,
-            value=0.95,
-            step=0.05,
-            label="Top-p (nucleus sampling)",
+            label="Top-p (Nucleus Sampling)",
         ),
     ],
 
-    examples = [ 
-        ["I feel overwhelmed with work."],
-        ["Can you guide me through a quick meditation?"],
-        ["How do I stop worrying about things I can't control?"]
+    examples=[
+        ["How do you say 'hello' in Spanish? 🇪🇸"],
+        ["Can you teach me some basic French phrases? 🇫🇷"],
+        ["What are the tones in Mandarin Chinese? 🇨🇳"],
     ],
-    title = 'Calm Mate 🕊️'
+    title='Language Learning Buddy 🌍',
+    description='''<div style="text-align: right; font-family: Arial, sans-serif; color: #333;">
+                   <h2>Welcome to the Language Learning Buddy 🌍</h2>
+                   <p style="font-size: 16px; text-align: right;">I'm here to assist you in learning languages. Whether you want to practice vocabulary, improve pronunciation, or learn about cultural nuances, I'm your guide.</p>
+                   <p style="text-align: right;"><strong>Examples:</strong></p>
+                   <ul style="list-style-type: disc; margin-left: 20px; text-align: right;">
+                       <li style="font-size: 14px;">How do you say 'hello' in Spanish? 🇪🇸</li>
+                       <li style="font-size: 14px;">Can you teach me some basic French phrases? 🇫🇷</li>
+                       <li style="font-size: 14px;">What are the tones in Mandarin Chinese? 🇨🇳</li>
+                   </ul>
+                   </div>''',
 )
 
 
